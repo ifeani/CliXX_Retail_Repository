@@ -8,6 +8,10 @@
     db_snapshot: wordpressdbclixxsnap
     security_group: sg-037f48b9fe195e7c0
   tasks:
+    - name: Set Python 3 interpreter
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
     - name: Restore DB from snapshot
       local_action:
         module: rds
@@ -18,8 +22,6 @@
         wait: yes
         instance_type: db.t2.small
         wait_timeout: 1200
-      vars:
-        ansible_python_interpreter: /usr/bin/python3
 
     - name: Modify to add SG
       local_action:
@@ -28,5 +30,3 @@
         instance_name: '{{ instance_id }}'
         region: us-east-1
         vpc_security_groups: '{{ security_group }}'
-      vars:
-        ansible_python_interpreter: /usr/bin/python3
