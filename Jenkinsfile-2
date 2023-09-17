@@ -74,7 +74,6 @@ pipeline {
                      USERNAME=${DB_USER_NAME}
                      PASSWORD=${DB_PASSWORD}
                      DBNAME=${DB_NAME}
-                     SITE_URL=$(SERVER_DOMAIN)
                      SERVER_IP="http://jenkins.stack-clixx-ifeoluwa-feb23.com"
                      SERVER_IP=$(curl -s http://checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//')
                      SERVER_INSTANCE=${SERVER_INSTANCE}
