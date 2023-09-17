@@ -83,40 +83,41 @@ pipeline {
             }
         }
 
-        stage('APPLICATION SYNTHETIC TEST') {
-            steps {
-                script {
-                    sh '''
-                    import requests
+        stage('Application Synthetic Test') {
+    steps {
+        script {
+            def scriptContent = '''
+                import requests
 
-                    website_urls = [
-                        "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
-                    ]
+                website_urls = [
+                    "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
+                ]
 
-                    statuses = {
-                        200: "Website Available",
-                        301: "Permanent Redirect",
-                        302: "Temporary Redirect",
-                        404: "Not Found",
-                        500: "Internal Server Error",
-                        503: "Service Unavailable"
-                    }
-
-                    for url in website_urls:
-                        try {
-                            web_response = requests.get(url)
-                            if web_response.status_code == 200 {
-                                echo "${url} ${statuses[web_response.status_code]}"
-                            } else {
-                                echo "${url} Status Code: ${web_response.status_code}"
-                            }
-                        } catch (Exception e) {
-                            echo "${url} Error: ${e.toString()}"
-                        }
-                    '''
+                statuses = {
+                    200: "Website Available",
+                    301: "Permanent Redirect",
+                    302: "Temporary Redirect",
+                    404: "Not Found",
+                    500: "Internal Server Error",
+                    503: "Service Unavailable"
                 }
-            }
+
+                for url in website_urls:
+                    try {
+                        web_response = requests.get(url)
+                        if web_response.status_code == 200 {
+                            echo "${url} ${statuses[web_response.status_code]}"
+                        } else {
+                            echo "${url} Status Code: ${web_response.status_code}"
+                        }
+                    } catch (Exception e) {
+                        echo "${url} Error: ${e.toString()}"
+                    }
+            '''
+            sh(script: scriptContent, returnStatus: true)
         }
+    }
+}
 
         stage('Tear Down CliXX Docker Image and Database') {
             steps {
