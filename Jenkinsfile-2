@@ -64,52 +64,29 @@ pipeline {
             }
         }
 
-        // stage('Configure DB Instance') {
-        //     steps {
-        //         withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
-        //                          string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-        //                          string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
-        //                          string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE')]) {
-        //             sh '''
-        //             USERNAME=${DB_USER_NAME}
-        //             PASSWORD=${DB_PASSWORD}
-        //             DBNAME=${DB_NAME}
-        //             SERVER_IP=$(curl -s http://checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//')
-        //             SERVER_INSTANCE=${SERVER_INSTANCE}
-        //             echo "use wordpressdb;" >> $WORKSPACE/db.setup
-        //             echo "UPDATE wp_options SET option_value = 'jenkins.stack-clixx-ifeoluwa-feb23.com/' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
-        //             mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
-        //             '''
-        //         }
-        //     }
-        // }
-
-
-stage('Configure DB Instance') {
-    steps {
-        withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
-                         string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                         string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
-                         string(credentialsId: 'SERVER_DOMAIN', variable: 'SERVER_DOMAIN')]) {
-            sh '''
-            USERNAME=${DB_USER_NAME}
-            PASSWORD=${DB_PASSWORD}
-            DBNAME=${DB_NAME}
-            SERVER_DOMAIN=${SERVER_DOMAIN}
-            echo "use wordpressdb;" >> $WORKSPACE/db.setup
-            echo "UPDATE wp_options SET option_value = 'jenkins.stack-clixx-ifeoluwa-feb23.com/' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
-            mysql -h $SERVER_DOMAIN -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
-            '''
-        }
-    }
-}
-
-
-
+         stage('Configure DB Instance') {
+             steps {
+                 withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
+                                  string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                                  string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
+                                  string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE')]) {
+                     sh '''
+                     USERNAME=${DB_USER_NAME}
+                     PASSWORD=${DB_PASSWORD}
+                     DBNAME=${DB_NAME}
+                     SERVER_IP=$(SERVER_DOMAIN)
+                     SERVER_INSTANCE=${SERVER_INSTANCE}
+                     echo "use wordpressdb;" >> $WORKSPACE/db.setup
+                     echo "UPDATE wp_options SET option_value = 'jenkins.stack-clixx-ifeoluwa-feb23.com/' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
+                     mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
+                     '''
+                 }
+             }
+         }
 
         // Uncomment and customize the following stages as needed.
 
-        /*
+        
         stage('Tear Down CliXX Docker Image and Database') {
             steps {
                 script {
@@ -145,7 +122,7 @@ stage('Configure DB Instance') {
                 }
             }
         }
-        */
+        
     }
 }
 
