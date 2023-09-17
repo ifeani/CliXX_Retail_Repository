@@ -14,9 +14,7 @@ pipeline {
                 }
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQubeScanner') {
-                        sh " ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=CliXX-App-Ifeoluwa   \
-                            -Dsonar.login=${SONAR_TOKEN} "
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
                     }
                 }
             }
@@ -32,20 +30,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build . -t clixx-image:$VERSION "
+                sh "docker build . -t clixx-image:$VERSION"
             }
         }
 
         stage('Starting Docker Image') {
             steps {
                 sh '''
-                if ( docker ps|grep clixx-cont ) then
+                if (docker ps | grep clixx-cont); then
                     echo "Docker image exists, killing it"
                     docker stop clixx-cont
                     docker rm clixx-cont
-                    docker run --name clixx-cont  -p 80:80 -d clixx-image:$VERSION
+                    docker run --name clixx-cont -p 80:80 -d clixx-image:$VERSION
                 else
-                    docker run --name clixx-cont  -p 80:80 -d clixx-image:$VERSION 
+                    docker run --name clixx-cont -p 80:80 -d clixx-image:$VERSION
                 fi
                 '''
             }
@@ -58,36 +56,68 @@ pipeline {
                 source python3-virtualenv/bin/activate
                 python3 --version
                 pip3 install boto3 botocore boto
-                ansible-playbook $WORKSPACE/deploy_db_ansible/deploy_db.yml 
+                ansible-playbook $WORKSPACE/deploy_db_ansible/deploy_db.yml
                 deactivate
                 '''
             }
         }
 
-         stage('Configure DB Instance') {
-             steps {
-                 withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
-                                  string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                                  string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
-                                  string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE')]) {
-                     sh '''
-                     USERNAME=${DB_USER_NAME}
-                     PASSWORD=${DB_PASSWORD}
-                     DBNAME=${DB_NAME}
-                     SERVER_IP="http://jenkins.stack-clixx-ifeoluwa-feb23.com"
-                     SERVER_IP=$(curl -s http://checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//')
-                     SERVER_INSTANCE=${SERVER_INSTANCE}
-                     echo "use wordpressdb;" >> $WORKSPACE/db.setup
-                     echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
-                     mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
-                     '''
-                 }
-             }
-         }
+        stage('Configure DB Instance') {
+            steps {
+                withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
+                                 string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                                 string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
+                                 string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE')]) {
+                    sh '''
+                    USERNAME=${DB_USER_NAME}
+                    PASSWORD=${DB_PASSWORD}
+                    DBNAME=${DB_NAME}
+                    SERVER_IP="http://jenkins.stack-clixx-ifeoluwa-feb23.com"
+                    SERVER_IP=$(curl -s http://checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//')
+                    SERVER_INSTANCE=${SERVER_INSTANCE}
+                    echo "use wordpressdb;" >> $WORKSPACE/db.setup
+                    echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value LIKE 'http%';" >> $WORKSPACE/db.setup
+                    mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
+                    '''
+                }
+            }
+        }
 
-        // Uncomment and customize the following stages as needed.
+        stage('APPLICATION SYNTHETIC TEST') {
+            steps {
+                script {
+                    sh '''
+                    import requests
 
-        
+                    website_urls = [
+                        "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
+                    ]
+
+                    statuses = {
+                        200: "Website Available",
+                        301: "Permanent Redirect",
+                        302: "Temporary Redirect",
+                        404: "Not Found",
+                        500: "Internal Server Error",
+                        503: "Service Unavailable"
+                    }
+
+                    for url in website_urls:
+                        try {
+                            web_response = requests.get(url)
+                            if web_response.status_code == 200 {
+                                echo "${url} ${statuses[web_response.status_code]}"
+                            } else {
+                                echo "${url} Status Code: ${web_response.status_code}"
+                            }
+                        } catch (Exception e) {
+                            echo "${url} Error: ${e.toString()}"
+                        }
+                    '''
+                }
+            }
+        }
+
         stage('Tear Down CliXX Docker Image and Database') {
             steps {
                 script {
@@ -101,7 +131,7 @@ pipeline {
                 ansible-playbook $WORKSPACE/deploy_db_ansible/delete_db.yml
                 deactivate
                 docker stop clixx-cont
-                docker rm  clixx-cont
+                docker rm clixx-cont
                 '''
             }
         }
@@ -123,7 +153,6 @@ pipeline {
                 }
             }
         }
-        
     }
 }
 
