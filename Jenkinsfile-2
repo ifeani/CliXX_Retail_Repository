@@ -105,7 +105,7 @@ pipeline {
                 for url in website_urls:
                     try {
                         web_response = requests.get(url)
-                        if web_response.status_code == 200 {
+                        if web_response.status_code != 200 {
                             echo "${url} ${statuses[web_response.status_code]}"
                         } else {
                             echo "${url} Status Code: ${web_response.status_code}"
