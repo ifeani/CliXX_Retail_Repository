@@ -77,7 +77,7 @@ pipeline {
                      SERVER_IP=$(SERVER_DOMAIN)
                      SERVER_INSTANCE=${SERVER_INSTANCE}
                      echo "use wordpressdb;" >> $WORKSPACE/db.setup
-                     echo "UPDATE wp_options SET option_value = 'jenkins.stack-clixx-ifeoluwa-feb23.com/' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
+                     echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value LIKE 'http%';">> $WORKSPACE/db.setup
                      mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
                      '''
                  }
