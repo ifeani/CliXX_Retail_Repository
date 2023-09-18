@@ -87,7 +87,8 @@ stage('Application Synthetic Test') {
     steps {
         script {
             def scriptContent = '''
-                import requests
+                    import requests
+                    import sys
 
                 website_urls = [
                     "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
@@ -103,17 +104,15 @@ stage('Application Synthetic Test') {
                 }
 
                 for url in website_urls:
-                    try {
+                    try:
                         web_response = requests.get(url)
-                        if web_response.status_code != 200 {
-                            echo "${url} ${statuses[web_response.status_code]}"
-                        } else {
-                            echo "${url} Status Code: ${web_response.status_code}"
-                        }
-                    } catch (Exception e) {
-                        echo "${url} Error: ${e.toString()}"
-                    }
-            '''
+                        if web_response.status_code != 200:
+                            print("Error: " + url + " returned status code " + web_response.status_code)
+                            sys.exit(1)
+                    except requests.RequestException as e:
+                        print("Error: Failed to get " + url + ". Exception: " + e)
+                        sys.exit(1)
+                '''
             sh(script: scriptContent, returnStatus: true)
         }
     }
