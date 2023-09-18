@@ -85,36 +85,35 @@ pipeline {
 
 stage('Application Synthetic Test') {
     steps {
-        script {
-            def scriptContent = '''
-                    import requests
-                    import sys
+        sh '''
+            python - <<END
+            import requests
+            import sys
 
-                website_urls = [
-                    "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
-                ]
+            website_urls = [
+                "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
+            ]
 
-                statuses = {
-                    200: "Website Available",
-                    301: "Permanent Redirect",
-                    302: "Temporary Redirect",
-                    404: "Not Found",
-                    500: "Internal Server Error",
-                    503: "Service Unavailable"
-                }
+            statuses = {
+                200: "Website Available",
+                301: "Permanent Redirect",
+                302: "Temporary Redirect",
+                404: "Not Found",
+                500: "Internal Server Error",
+                503: "Service Unavailable"
+            }
 
-                for url in website_urls:
-                    try:
-                        web_response = requests.get(url)
-                        if web_response.status_code != 200:
-                            print("Error: " + url + " returned status code " + web_response.status_code)
-                            sys.exit(1)
-                    except requests.RequestException as e:
-                        print("Error: Failed to get " + url + ". Exception: " + e)
+            for url in website_urls:
+                try:
+                    web_response = requests.get(url)
+                    if web_response.status_code != 200:
+                        print("Error: " + url + " returned status code " + str(web_response.status_code))
                         sys.exit(1)
-                '''
-            sh(script: scriptContent, returnStatus: true)
-        }
+                except requests.RequestException as e:
+                    print("Error: Failed to get " + url + ". Exception: " + str(e))
+                    sys.exit(1)
+            END
+        '''
     }
 }
 
