@@ -6,7 +6,7 @@ pipeline {
         PATH = "${PATH}:${getSonarPath()}:${getDockerPath()}"
     }
 
-    // stages {
+    stages {
     //     stage('Sonarcube Scan') {
     //         steps {
     //             script {
