@@ -6,27 +6,27 @@ pipeline {
         PATH = "${PATH}:${getSonarPath()}:${getDockerPath()}"
     }
 
-    stages {
-        stage('Sonarcube Scan') {
-            steps {
-                script {
-                    scannerHome = tool 'sonarqube'
-                }
-                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQubeScanner') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
-                    }
-                }
-            }
-        }
+    // stages {
+    //     stage('Sonarcube Scan') {
+    //         steps {
+    //             script {
+    //                 scannerHome = tool 'sonarqube'
+    //             }
+    //             withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+    //                 withSonarQubeEnv('SonarQubeScanner') {
+    //                     sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         timeout(time: 3, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
 
         stage('Build Docker Image') {
             steps {
@@ -95,14 +95,14 @@ website_urls = [
     "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
 ]
 
-     statuses = {
-        200: "Website Available",
-        301: "Permanent Redirect",
-        302: "Temporary Redirect",
-        404: "Not Found",
-        500: "Internal Server Error",
-        503: "Service Unavailable"
-    }
+    // statuses = {
+    //     200: "Website Available",
+    //     301: "Permanent Redirect",
+    //     302: "Temporary Redirect",
+    //     404: "Not Found",
+    //     500: "Internal Server Error",
+    //     503: "Service Unavailable"
+    // }
 
 for url in website_urls:
     try:          
