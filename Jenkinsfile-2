@@ -94,16 +94,7 @@ import sys
 website_urls = [
     "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
 ]
-
-    // statuses = {
-    //     200: "Website Available",
-    //     301: "Permanent Redirect",
-    //     302: "Temporary Redirect",
-    //     404: "Not Found",
-    //     500: "Internal Server Error",
-    //     503: "Service Unavailable"
-    // }
-
+ 
 for url in website_urls:
     try:          
         web_response = requests.get(url)
