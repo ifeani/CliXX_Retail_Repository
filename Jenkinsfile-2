@@ -68,7 +68,7 @@ pipeline {
                                  string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                                  string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
                                  string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE'),
-                                 string(credentialsId: 'SERVER_DOMAIN', variable: 'SERVER_DOMAIN'),]) {
+                                 string(credentialsId: 'SERVER_DOMAIN', variable: 'SERVER_DOMAIN')]) {
                     sh '''
                     USERNAME=${DB_USER_NAME}
                     PASSWORD=${DB_PASSWORD}
