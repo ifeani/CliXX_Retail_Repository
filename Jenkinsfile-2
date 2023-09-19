@@ -7,26 +7,26 @@ pipeline {
     }
 
     stages {
-        // stage('Sonarcube Scan') {
-        //     steps {
-        //         script {
-        //             scannerHome = tool 'sonarqube'
-        //         }
-        //         withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-        //             withSonarQubeEnv('SonarQubeScanner') {
-        //                 sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Sonarcube Scan') {
+            steps {
+                script {
+                    scannerHome = tool 'sonarqube'
+                }
+                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQubeScanner') {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
+                    }
+                }
+            }
+        }
 
-        // stage('Quality Gate') {
-        //     steps {
-        //         timeout(time: 3, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 3, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -120,23 +120,23 @@ END
 }
 
 
-        // stage('Tear Down CliXX Docker Image and Database') {
-        //     steps {
-        //         script {
-        //             def userInput = input(id: 'confirm', message: 'Tear Down Environment?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Tear Down Environment?', name: 'confirm']])
-        //         }
-        //         sh '''
-        //         python3 -m venv python3-virtualenv
-        //         source python3-virtualenv/bin/activate
-        //         python3 --version
-        //         pip3 install boto3 botocore boto
-        //         ansible-playbook $WORKSPACE/deploy_db_ansible/delete_db.yml
-        //         deactivate
-        //         docker stop clixx-cont
-        //         docker rm clixx-cont
-        //         '''
-        //     }
-        // }
+        stage('Tear Down CliXX Docker Image and Database') {
+            steps {
+                script {
+                    def userInput = input(id: 'confirm', message: 'Tear Down Environment?', parameters: [[$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Tear Down Environment?', name: 'confirm']])
+                }
+                sh '''
+                python3 -m venv python3-virtualenv
+                source python3-virtualenv/bin/activate
+                python3 --version
+                pip3 install boto3 botocore boto
+                ansible-playbook $WORKSPACE/deploy_db_ansible/delete_db.yml
+                deactivate
+                docker stop clixx-cont
+                docker rm clixx-cont
+                '''
+            }
+        }
 
         stage('Log Into ECR and push the newly created Docker Image') {
             steps {
@@ -157,7 +157,9 @@ END
             
                     aws ecr get-login-password --region us-east-1 | docker login --username ${ECR_USERNAME} --password-stdin ${ECR_REPO_DEV}
                     docker tag clixx-image:$VERSION ${ECR_REPO_DEV}:clixx-image-$VERSION
+                    docker tag clixx-image:$VERSION ${ECR_REPO_DEV}:latest
                     docker push ${ECR_REPO_DEV}:clixx-image-$VERSION
+                    docker push ${ECR_REPO_DEV}:latest
                     '''
                 }
             }
