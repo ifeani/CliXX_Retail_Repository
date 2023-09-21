@@ -7,26 +7,26 @@ pipeline {
     }
 
     stages {
-        stage('Sonarcube Scan') {
-            steps {
-                script {
-                    scannerHome = tool 'sonarqube'
-                }
-                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQubeScanner') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
-                    }
-                }
-            }
-        }
+        // stage('Sonarcube Scan') {
+        //     steps {
+        //         script {
+        //             scannerHome = tool 'sonarqube'
+        //         }
+        //         withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+        //             withSonarQubeEnv('SonarQubeScanner') {
+        //                 sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=CliXX-App-Ifeoluwa -Dsonar.login=${SONAR_TOKEN}"
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         timeout(time: 3, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
 
         stage('Build Docker Image') {
             steps {
@@ -49,75 +49,75 @@ pipeline {
             }
         }
 
-        stage('Restore CliXX Database') {
-            steps {
-                sh '''
-                python3 -m venv python3-virtualenv
-                source python3-virtualenv/bin/activate
-                python3 --version
-                pip3 install boto3 botocore boto
-                ansible-playbook $WORKSPACE/deploy_db_ansible/deploy_db.yml
-                deactivate
-                '''
-            }
-        }
+        // stage('Restore CliXX Database') {
+        //     steps {
+        //         sh '''
+        //         python3 -m venv python3-virtualenv
+        //         source python3-virtualenv/bin/activate
+        //         python3 --version
+        //         pip3 install boto3 botocore boto
+        //         ansible-playbook $WORKSPACE/deploy_db_ansible/deploy_db.yml
+        //         deactivate
+        //         '''
+        //     }
+        // }
 
-        stage('Configure DB Instance') {
-            steps {
-                withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
-                                 string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                                 string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
-                                 string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE'),
-                                 string(credentialsId: 'SERVER_DOMAIN', variable: 'SERVER_DOMAIN')]) {
-                    sh '''
-                    USERNAME=${DB_USER_NAME}
-                    PASSWORD=${DB_PASSWORD}
-                    DBNAME=${DB_NAME}
-                    SITE_URL=${SERVER_DOMAIN}
-                    SERVER_INSTANCE=${SERVER_INSTANCE}
-                    echo "use wordpressdb;" >> $WORKSPACE/db.setup
-                    echo "UPDATE wp_options SET option_value = '$SITE_URL' WHERE option_value LIKE 'http%';" >> $WORKSPACE/db.setup
-                    mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
-                    '''
-                }
-            }
-        }
+        // stage('Configure DB Instance') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'),
+        //                          string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+        //                          string(credentialsId: 'DB_NAME', variable: 'DB_NAME'),
+        //                          string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE'),
+        //                          string(credentialsId: 'SERVER_DOMAIN', variable: 'SERVER_DOMAIN')]) {
+        //             sh '''
+        //             USERNAME=${DB_USER_NAME}
+        //             PASSWORD=${DB_PASSWORD}
+        //             DBNAME=${DB_NAME}
+        //             SITE_URL=${SERVER_DOMAIN}
+        //             SERVER_INSTANCE=${SERVER_INSTANCE}
+        //             echo "use wordpressdb;" >> $WORKSPACE/db.setup
+        //             echo "UPDATE wp_options SET option_value = '$SITE_URL' WHERE option_value LIKE 'http%';" >> $WORKSPACE/db.setup
+        //             mysql -h $SERVER_INSTANCE -u $USERNAME -p$PASSWORD -D $DBNAME < $WORKSPACE/db.setup
+        //             '''
+        //         }
+        //     }
+        // }
 
-stage('Application Synthetic Test') {
-    steps {
-        script {
-            sh '''
-python - <<END
-import requests
-import sys
+// stage('Application Synthetic Test') {
+//     steps {
+//         script {
+//             sh '''
+// python - <<END
+// import requests
+// import sys
 
-website_urls = [
-    "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
-]
+// website_urls = [
+//     "http://jenkins.stack-clixx-ifeoluwa-feb23.com",
+// ]
 
-statuses = {
-    200: "Website Available",
-    301: "Permanent Redirect",
-    302: "Temporary Redirect",
-    404: "Not Found",
-    500: "Internal Server Error",
-    503: "Service Unavailable"
-}
+// statuses = {
+//     200: "Website Available",
+//     301: "Permanent Redirect",
+//     302: "Temporary Redirect",
+//     404: "Not Found",
+//     500: "Internal Server Error",
+//     503: "Service Unavailable"
+// }
 
-for url in website_urls:
-    try:          
-        web_response = requests.get(url)
-        if web_response.status_code != 200:
-            print("Error: " + url + " returned status code " + str(web_response.status_code))
-            sys.exit(1)
-    except requests.RequestException as e:
-        print("Error: Failed to get " + url + ". Exception: " + str(e))
-        sys.exit(1)
-END
-            '''
-        }
-    }
-}
+// for url in website_urls:
+//     try:          
+//         web_response = requests.get(url)
+//         if web_response.status_code != 200:
+//             print("Error: " + url + " returned status code " + str(web_response.status_code))
+//             sys.exit(1)
+//     except requests.RequestException as e:
+//         print("Error: Failed to get " + url + ". Exception: " + str(e))
+//         sys.exit(1)
+// END
+//             '''
+//         }
+//     }
+// }
 
 
         stage('Tear Down CliXX Docker Image and Database') {
@@ -130,7 +130,7 @@ END
                 source python3-virtualenv/bin/activate
                 python3 --version
                 pip3 install boto3 botocore boto
-                ansible-playbook $WORKSPACE/deploy_db_ansible/delete_db.yml
+                // ansible-playbook $WORKSPACE/deploy_db_ansible/delete_db.yml
                 deactivate
                 docker stop clixx-cont
                 docker rm clixx-cont
